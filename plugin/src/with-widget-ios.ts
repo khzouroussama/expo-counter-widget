@@ -1,216 +1,211 @@
-import { ConfigPlugin, withXcodeProject } from "@expo/config-plugins"
-import * as fs from "fs"
-import path from "path"
+import { ConfigPlugin, withXcodeProject } from '@expo/config-plugins';
+import * as fs from 'fs';
+import path from 'path';
 // @ts-ignore
-import xcode from "xcode"
-import { WithWidgetProps } from "."
 
-const EXTENSION_TARGET_NAME = "widget"
+import xcode from 'xcode';
+import { WithWidgetProps } from '.';
 
-const TOP_LEVEL_FILES = ["Assets.xcassets", "Info.plist", "widget.swift"]
+const EXTENSION_TARGET_NAME = 'widget';
+
+const TOP_LEVEL_FILES = [
+  'Assets.xcassets',
+  'Info.plist',
+  'widget.swift',
+  'widget.entitlements',
+];
 
 const BUILD_CONFIGURATION_SETTINGS = {
-  ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: "AccentColor",
-  ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: "WidgetBackground",
-  CLANG_ANALYZER_NONNULL: "YES",
-  CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION: "YES_AGGRESSIVE",
+  ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: 'AccentColor',
+  ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME: 'WidgetBackground',
+  CLANG_ANALYZER_NONNULL: 'YES',
+  CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION: 'YES_AGGRESSIVE',
   CLANG_CXX_LANGUAGE_STANDARD: '"gnu++17"',
-  CLANG_ENABLE_OBJC_WEAK: "YES",
-  CLANG_WARN_DOCUMENTATION_COMMENTS: "YES",
-  CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: "YES",
-  CLANG_WARN_UNGUARDED_AVAILABILITY: "YES_AGGRESSIVE",
-  CODE_SIGN_STYLE: "Automatic",
-  CURRENT_PROJECT_VERSION: "1",
-  DEBUG_INFORMATION_FORMAT: "dwarf",
-  GCC_C_LANGUAGE_STANDARD: "gnu11",
-  GENERATE_INFOPLIST_FILE: "YES",
-  INFOPLIST_FILE: "widget/Info.plist",
-  INFOPLIST_KEY_CFBundleDisplayName: "widget",
+  CLANG_ENABLE_OBJC_WEAK: 'YES',
+  CLANG_WARN_DOCUMENTATION_COMMENTS: 'YES',
+  CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER: 'YES',
+  CLANG_WARN_UNGUARDED_AVAILABILITY: 'YES_AGGRESSIVE',
+  CODE_SIGN_STYLE: 'Automatic',
+  CODE_SIGN_ENTITLEMENTS: 'widget/widget.entitlements',
+  CURRENT_PROJECT_VERSION: '1',
+  DEBUG_INFORMATION_FORMAT: 'dwarf',
+  GCC_C_LANGUAGE_STANDARD: 'gnu11',
+  GENERATE_INFOPLIST_FILE: 'YES',
+  INFOPLIST_FILE: 'widget/Info.plist',
+  INFOPLIST_KEY_CFBundleDisplayName: 'widget',
   INFOPLIST_KEY_NSHumanReadableCopyright: '""',
-  IPHONEOS_DEPLOYMENT_TARGET: "14.0",
+  IPHONEOS_DEPLOYMENT_TARGET: '14.0',
   LD_RUNPATH_SEARCH_PATHS:
     '"$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"',
-  MARKETING_VERSION: "1.0",
-  MTL_ENABLE_DEBUG_INFO: "INCLUDE_SOURCE",
-  MTL_FAST_MATH: "YES",
+  MARKETING_VERSION: '1.0',
+  MTL_ENABLE_DEBUG_INFO: 'INCLUDE_SOURCE',
+  MTL_FAST_MATH: 'YES',
   PRODUCT_NAME: '"$(TARGET_NAME)"',
-  SKIP_INSTALL: "YES",
-  SWIFT_ACTIVE_COMPILATION_CONDITIONS: "DEBUG",
-  SWIFT_EMIT_LOC_STRINGS: "YES",
-  SWIFT_OPTIMIZATION_LEVEL: "-Onone",
-  SWIFT_VERSION: "5.0",
+  SKIP_INSTALL: 'YES',
+  SWIFT_ACTIVE_COMPILATION_CONDITIONS: 'DEBUG',
+  SWIFT_EMIT_LOC_STRINGS: 'YES',
+  SWIFT_OPTIMIZATION_LEVEL: '-Onone',
+  SWIFT_VERSION: '5.0',
   TARGETED_DEVICE_FAMILY: '"1"',
-}
+};
 
 export const withWidgetXCode: ConfigPlugin<WithWidgetProps> = (
   config,
   options: WithWidgetProps,
 ) => {
-  return withXcodeProject(config, async newConfig => {
+  return withXcodeProject(config, async (newConfig) => {
     try {
-      const projectName = newConfig.modRequest.projectName
-      const projectPath = newConfig.modRequest.projectRoot
-      const platformProjectPath = newConfig.modRequest.platformProjectRoot
-      const widgetSourceDirPath = path.join(
-        projectPath,
-        "widget",
-        "ios",
-        "widget",
-      )
-      const bundleId = config.ios?.bundleIdentifier || ""
-      const widgetBundleId = `${bundleId}.widget`
+      const projectName = newConfig.modRequest.projectName;
+      const projectPath = newConfig.modRequest.projectRoot;
+      const platformProjectPath = newConfig.modRequest.platformProjectRoot;
+      const widgetSourceDirPath = path.join(projectPath, 'widget', 'ios', 'widget');
+      const bundleId = config.ios?.bundleIdentifier || '';
+      const widgetBundleId = `${bundleId}.widget`;
+      const appGroupId = `group.${bundleId}`;
 
       const extensionFilesDir = path.join(
         platformProjectPath,
         EXTENSION_TARGET_NAME,
-      )
-      fs.cpSync(widgetSourceDirPath, extensionFilesDir, { recursive: true })
+      );
+      fs.cpSync(widgetSourceDirPath, extensionFilesDir, { recursive: true });
 
-      const projPath = `${newConfig.modRequest.platformProjectRoot}/${projectName}.xcodeproj/project.pbxproj`
-      await updateXCodeProj(projPath, widgetBundleId, options.teamID)
-      return newConfig
+      const projPath = `${newConfig.modRequest.platformProjectRoot}/${projectName}.xcodeproj/project.pbxproj`;
+      await updateXCodeProj(projPath, widgetBundleId, options.teamID, appGroupId);
+      return newConfig;
     } catch (e) {
-      console.error(e)
-      throw e
+      console.error(e);
+      throw e;
     }
-  })
-}
+  });
+};
 
 async function updateXCodeProj(
   projPath: string,
   widgetBundleId: string,
+  appGroupId: string,
   developmentTeamId: string,
 ) {
-  const xcodeProject = xcode.project(projPath)
+  const xcodeProject = xcode.project(projPath);
 
   xcodeProject.parse(() => {
     const pbxGroup = xcodeProject.addPbxGroup(
       TOP_LEVEL_FILES,
       EXTENSION_TARGET_NAME,
       EXTENSION_TARGET_NAME,
-    )
+    );
 
     // Add the new PBXGroup to the top level group. This makes the
     // files / folder appear in the file explorer in Xcode.
-    const groups = xcodeProject.hash.project.objects.PBXGroup
+    const groups = xcodeProject.hash.project.objects.PBXGroup;
     Object.keys(groups).forEach(function (groupKey) {
       if (groups[groupKey].name === undefined) {
-        xcodeProject.addToPbxGroup(pbxGroup.uuid, groupKey)
+        xcodeProject.addToPbxGroup(pbxGroup.uuid, groupKey);
       }
-    })
+    });
 
     // // WORK AROUND for codeProject.addTarget BUG
     // // Xcode projects don't contain these if there is only one target
     // // An upstream fix should be made to the code referenced in this link:
     // //   - https://github.com/apache/cordova-node-xcode/blob/8b98cabc5978359db88dc9ff2d4c015cba40f150/lib/pbxProject.js#L860
-    const projObjects = xcodeProject.hash.project.objects
-    projObjects["PBXTargetDependency"] =
-      projObjects["PBXTargetDependency"] || {}
-    projObjects["PBXContainerItemProxy"] =
-      projObjects["PBXTargetDependency"] || {}
+    const projObjects = xcodeProject.hash.project.objects;
+    projObjects['PBXTargetDependency'] = projObjects['PBXTargetDependency'] || {};
+    projObjects['PBXContainerItemProxy'] = projObjects['PBXTargetDependency'] || {};
 
-    // // add target
+    // add target
     const widgetTarget = xcodeProject.addTarget(
       EXTENSION_TARGET_NAME,
-      "app_extension",
+      'app_extension',
       EXTENSION_TARGET_NAME,
       widgetBundleId,
-    )
+    );
 
     // add build phase
     xcodeProject.addBuildPhase(
-      ["widget.swift"],
-      "PBXSourcesBuildPhase",
-      "Sources",
+      ['widget.swift'],
+      'PBXSourcesBuildPhase',
+      'Sources',
       widgetTarget.uuid,
       undefined,
-      "widget",
-    )
+      'widget',
+    );
+
     xcodeProject.addBuildPhase(
-      ["SwiftUI.framework", "WidgetKit.framework"],
-      "PBXFrameworksBuildPhase",
-      "Frameworks",
+      ['SwiftUI.framework', 'WidgetKit.framework'],
+      'PBXFrameworksBuildPhase',
+      'Frameworks',
       widgetTarget.uuid,
-    )
+    );
     const resourcesBuildPhase = xcodeProject.addBuildPhase(
-      ["Assets.xcassets"],
-      "PBXResourcesBuildPhase",
-      "Resources",
+      ['Assets.xcassets'],
+      'PBXResourcesBuildPhase',
+      'Resources',
       widgetTarget.uuid,
       undefined,
-      "widget",
-    )
+      'widget',
+    );
 
     /* Update build configurations */
-    const configurations = xcodeProject.pbxXCBuildConfigurationSection()
+    const configurations = xcodeProject.pbxXCBuildConfigurationSection();
 
     for (const key in configurations) {
-      if (typeof configurations[key].buildSettings !== "undefined") {
-        const productName = configurations[key].buildSettings.PRODUCT_NAME
+      if (typeof configurations[key].buildSettings !== 'undefined') {
+        const productName = configurations[key].buildSettings.PRODUCT_NAME;
         if (productName === `"${EXTENSION_TARGET_NAME}"`) {
           configurations[key].buildSettings = {
             ...configurations[key].buildSettings,
             ...BUILD_CONFIGURATION_SETTINGS,
             DEVELOPMENT_TEAM: developmentTeamId,
             PRODUCT_BUNDLE_IDENTIFIER: widgetBundleId,
-          }
+          };
         }
       }
     }
 
-    fs.writeFileSync(projPath, xcodeProject.writeSync())
-  })
+    fs.writeFileSync(projPath, xcodeProject.writeSync());
+  });
 }
 
-
-export const withWidgetEAS: ConfigPlugin<WithWidgetProps> = (
-  config,
-  options,
-) => {
-  config.extra = config.extra || {}
-  config.extra.eas = config.extra.eas || {}
-  config.extra.eas.build = config.extra.eas.build || {}
-  config.extra.eas.build.experimental =
-    config.extra.eas.build.experimental || {}
+export const withWidgetEAS: ConfigPlugin<WithWidgetProps> = (config, options) => {
+  config.extra = config.extra || {};
+  config.extra.eas = config.extra.eas || {};
+  config.extra.eas.build = config.extra.eas.build || {};
+  config.extra.eas.build.experimental = config.extra.eas.build.experimental || {};
   config.extra.eas.build.experimental.ios =
-    config.extra.eas.build.experimental.ios || {}
+    config.extra.eas.build.experimental.ios || {};
   config.extra.eas.build.experimental.ios.appExtensions =
-    config.extra.eas.build.experimental.ios.appExtensions || []
+    config.extra.eas.build.experimental.ios.appExtensions || [];
 
   const widget = config.extra.eas.build.experimental.ios.appExtensions.find(
-    (extension: { targetName?: string }) => extension.targetName === "widget",
-  )
+    (extension: { targetName?: string }) => extension.targetName === 'widget',
+  );
 
   if (widget) {
     throw new Error(
       `[withWidget] Found existing widget extension in app.json at config.extra.eas.build.experimental.ios.appExtensions. Please remove it and try again.`,
-    )
+    );
   }
 
-  const bundleIdentifier = config.ios?.bundleIdentifier || ""
+  const bundleIdentifier = config.ios?.bundleIdentifier || '';
 
   if (!bundleIdentifier) {
     throw new Error(
       `[withWidget] Unable to find bundleIdentifier in app.json at config.ios.bundleIdentifier. Please add it and try again.`,
-    )
+    );
   }
 
   config.extra.eas.build.experimental.ios.appExtensions = [
     ...config.extra.eas.build.experimental.ios.appExtensions,
     {
-      targetName: "widget",
+      targetName: 'widget',
       bundleIdentifier: `${bundleIdentifier}.widget`,
     },
-  ]
+  ];
 
-  return config
-}
+  return config;
+};
 
-export const withWidgetIos: ConfigPlugin<WithWidgetProps> = (
-  config,
-  options,
-) => {
-  config = withWidgetXCode(config, options)
-  config = withWidgetEAS(config, options)
-  return config
-}
+export const withWidgetIos: ConfigPlugin<WithWidgetProps> = (config, options) => {
+  config = withWidgetXCode(config, options);
+  config = withWidgetEAS(config, options);
+  return config;
+};

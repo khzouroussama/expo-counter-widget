@@ -1,70 +1,75 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
+import React from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { getData, setData } from 'modules:widget';
+import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSharedData } from '@/hooks/useSharedData';
 
 export default function HomeScreen() {
+  const [{ count, updatedAt }, setData] = useSharedData();
+  const { top } = useSafeAreaInsets();
+
+  const onPress = (type: 'increment' | 'decrement') => () => {
+    setData((data) => {
+      const newCount = Math.max(
+        0,
+        type === 'increment' ? data.count + 1 : data.count - 1,
+      );
+      return {
+        count: newCount,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+    <ThemedView style={[styles.container, { paddingTop: top }]}>
+      <ThemedView style={styles.countContainer}>
+        <ThemedText type="title">{count}</ThemedText>
+        {updatedAt && (
+          <ThemedText type="default">Updated at: {updatedAt}</ThemedText>
+        )}
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
+      <ThemedView style={styles.buttonsContainer}>
+        <TouchableOpacity style={styles.button} onPress={onPress('decrement')}>
+          <ThemedText type="title">-</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={onPress('increment')}>
+          <ThemedText type="title">+</ThemedText>
+        </TouchableOpacity>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
     alignItems: 'center',
     gap: 8,
   },
-  stepContainer: {
+  buttonsContainer: {
+    flexDirection: 'row',
     gap: 8,
-    marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  countContainer: {
+    // flexDirection: 'row',
+    width: '100%',
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    height: 96,
+    backgroundColor: '#0a7ea4',
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 96,
+    width: 96,
+    padding: 32,
+    borderRadius: 12,
+    backgroundColor: '#0a7ea432',
   },
 });

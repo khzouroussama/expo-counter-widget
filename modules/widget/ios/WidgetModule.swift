@@ -1,44 +1,71 @@
 import ExpoModulesCore
+import ActivityKit
+import WidgetKit
 
 public class WidgetModule: Module {
-  // Each module class must implement the definition function. The definition consists of components
-  // that describes the module's functionality and behavior.
-  // See https://docs.expo.dev/modules/module-api for more details about available components.
-  public func definition() -> ModuleDefinition {
-    // Sets the name of the module that JavaScript code will use to refer to the module. Takes a string as an argument.
-    // Can be inferred from module's class name, but it's recommended to set it explicitly for clarity.
-    // The module will be accessible from `requireNativeModule('Widget')` in JavaScript.
-    Name("Widget")
-
-    // Sets constant properties on the module. Can take a dictionary or a closure that returns a dictionary.
-    Constants([
-      "PI": Double.pi
-    ])
-
-    // Defines event names that the module can send to JavaScript.
-    Events("onChange")
-
-    // Defines a JavaScript synchronous function that runs the native code on the JavaScript thread.
-    Function("hello") {
-      return "Hello world! 👋"
+    public func definition() -> ModuleDefinition {
+        Name("Widget")
+        
+        Function("setData") { (key: String, value: Int, group: String?) -> Void in
+            let userDefaults = UserDefaults(
+                suiteName: group
+            )
+            userDefaults?.set(value, forKey: key)
+            
+            if #available(iOS 14.0, *) {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
+        
+        Function("getData") { (key: String, group: String?) -> Int? in
+            let userDefaults = UserDefaults(
+                suiteName: group
+            )
+            return userDefaults?.integer(forKey: key)
+        }
+        
+        Function("getAppGroupContainerUrl") { () -> String? in
+            let appGroupID = "group.com.learn.counterwidget" // Replace with your App Group ID
+            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
+                return containerURL.absoluteString
+            } else {
+                return nil
+            }
+        }
+        
+        
+        Function("writeFile") { (filename: String, content: String) in
+            let appGroupID = "group.com.learn.counterwidget" // Replace with your App Group ID
+            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
+                let fileURL = containerURL.appendingPathComponent(filename)
+                do {
+                    try content.write(to: fileURL, atomically: true, encoding: .utf8)
+                } catch {
+                    print("Error writing file: \(error)")
+                }
+            }
+        }
+        
+        Function("readFile") { (filename: String) -> String? in
+            let appGroupID = "group.com.learn.counterwidget" // Replace with your App Group ID
+            if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupID) {
+                let fileURL = containerURL.appendingPathComponent(filename)
+                do {
+                    let content = try String(contentsOf: fileURL, encoding: .utf8)
+                    return content
+                } catch {
+                    print("Error reading file: \(error)")
+                    return nil
+                }
+            }
+            return nil
+        }
+        
+        Function("reloadWidgets") {
+            if #available(iOS 14.0, *) {
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        }
+        
     }
-
-    // Defines a JavaScript function that always returns a Promise and whose native code
-    // is by default dispatched on the different thread than the JavaScript runtime runs on.
-    AsyncFunction("setValueAsync") { (value: String) in
-      // Send an event to JavaScript.
-      self.sendEvent("onChange", [
-        "value": value
-      ])
-    }
-
-    // Enables the module to be used as a native view. Definition components that are accepted as part of the
-    // view definition: Prop, Events.
-    View(WidgetView.self) {
-      // Defines a setter for the `name` prop.
-      Prop("name") { (view: WidgetView, prop: String) in
-        print(prop)
-      }
-    }
-  }
 }
