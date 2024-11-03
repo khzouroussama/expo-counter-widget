@@ -13,13 +13,20 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.learn.counterwidget",
+      "entitlements": {
+        "com.apple.security.application-groups": [
+          "group.com.learn.counterwidget"
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.learn.counterwidget"
     },
     "web": {
       "bundler": "metro",
@@ -27,7 +34,13 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "./app.plugin",
+        {
+          "teamID": "6D2WHYV987"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
