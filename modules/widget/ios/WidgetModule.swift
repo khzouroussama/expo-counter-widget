@@ -41,9 +41,17 @@ public class WidgetModule: Module {
             do {
                 let content = try String(contentsOf: fileUrl, encoding: .utf8)
                 return content
-            } catch {
-                print("Error reading file: \(error)")
-                return nil
+            } catch let error as NSError {
+                if error.domain == NSCocoaErrorDomain && error.code == NSFileReadNoSuchFileError {
+                    throw Exception(
+                        name: "FILE_NOT_FOUND",
+                        description: "File not found",
+                        code: "FILE_NOT_FOUND"
+                    )
+                } else {
+                    print("Error reading file: \(error)")
+                    return nil
+                }
             }
         }
         

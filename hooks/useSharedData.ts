@@ -16,13 +16,19 @@ export interface SharedData {
 
 export const useSharedData = () => {
   const [data, setData] = React.useState<SharedData>({ count: 0, updatedAt: null });
+  const [error, setError] = React.useState<string | null>(null);
   const sharedFilePatch = getContainerUrl() + DATA_FILE_NAME;
 
   async function readData() {
     try {
       const dataString = await readAsStringAsync(sharedFilePatch);
+      setError(null);
       return JSON.parse(dataString);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'FILE_NOT_FOUND') {
+        setError('📁 File not found');
+        return;
+      }
       console.error('Error reading data:', error);
       return { count: 0, updatedAt: null };
     }
@@ -30,7 +36,6 @@ export const useSharedData = () => {
 
   async function writeData(data: SharedData) {
     try {
-      console.log({ ...data });
       const jsonData = JSON.stringify(data);
       writeAsStringAsync(sharedFilePatch, jsonData);
     } catch (error) {
@@ -62,5 +67,5 @@ export const useSharedData = () => {
     [setData],
   );
 
-  return [data, set] as const;
+  return [data, set, error] as const;
 };

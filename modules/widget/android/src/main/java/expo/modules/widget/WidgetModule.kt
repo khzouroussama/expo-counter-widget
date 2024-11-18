@@ -9,6 +9,8 @@ import android.content.ComponentName
 import android.appwidget.AppWidgetManager
 import android.content.pm.PackageManager
 import android.widget.Toast
+import expo.modules.kotlin.exception.CodedException
+import java.io.FileNotFoundException
 
 class WidgetModule : Module() {
   override fun definition() = ModuleDefinition {
@@ -37,8 +39,15 @@ class WidgetModule : Module() {
               }
               return@AsyncFunction content
           } catch (e: Exception) {
-              e.printStackTrace()
-              Toast.makeText(context, "Error reading file: ${e.message}", Toast.LENGTH_SHORT).show()
+              when {
+                  e is FileNotFoundException -> {
+                      throw FileNotFoundCodedException("file not found", e)
+                  }
+                  else -> {
+                      e.printStackTrace()
+                      Toast.makeText(context, "Error reading file: ${e.message}", Toast.LENGTH_SHORT).show()
+                  }
+              }
           }
       }
 
@@ -73,4 +82,12 @@ class WidgetModule : Module() {
       return context.getSharedPreferences(packageName + ".widgetdata", Context.MODE_PRIVATE)
     }
 
+}
+
+class FileNotFoundCodedException(
+    message: String? = null,
+    cause: Throwable? = null
+) : CodedException(message, cause) {
+    override val code: String
+        get() = "FILE_NOT_FOUND"
 }

@@ -10,7 +10,7 @@ import useTimeAgo from '@/hooks/useTimeAgo';
 import { Colors } from '@/constants/Colors';
 
 export default function HomeScreen() {
-  const [{ count, updatedAt }, setData] = useSharedData();
+  const [{ count, updatedAt }, setData, error] = useSharedData();
   const { top } = useSafeAreaInsets();
 
   const timeAgo = useTimeAgo(updatedAt);
@@ -28,7 +28,7 @@ export default function HomeScreen() {
   return (
     <ThemedView style={[styles.container, { paddingTop: top }]}>
       <ThemedView style={styles.countContainer}>
-        <ThemedText type="title">{count}</ThemedText>
+        <ThemedText type="title">{error ?? count}</ThemedText>
         {updatedAt && <ThemedText type="default">{timeAgo}</ThemedText>}
       </ThemedView>
       <ThemedView style={styles.buttonsContainer}>
