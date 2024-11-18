@@ -1,32 +1,20 @@
 import WidgetModule from './src/WidgetModule';
 
-export function setData(
-  key: string,
-  value: number,
-  group: string = 'group.com.learn.counterwidget',
-): string {
-  return WidgetModule.setData(key, value, group);
+export function getContainerUrl(): string {
+  return WidgetModule.getContainerUrl();
 }
 
-export function getData(
-  key: string,
-  group: string = 'group.com.learn.counterwidget',
-): number {
-  return WidgetModule.getData(key, group);
+export async function readAsStringAsync(file: string): Promise<string> {
+  return WidgetModule.readAsStringAsync(file);
 }
 
-export function getAppGroupContainerUrl(): string {
-  return WidgetModule.getAppGroupContainerUrl();
+export async function writeAsStringAsync(
+  file: string,
+  content: string,
+): Promise<void> {
+  return WidgetModule.writeAsStringAsync(file, content);
 }
 
-export function readFile(file: string): string {
-  return WidgetModule.readFile(file);
-}
-
-export function writeFile(file: string, content: string): number {
-  return WidgetModule.writeFile(file, content);
-}
-
-export function reloadWidgets(): number {
+export function reloadWidgets(): void {
   return WidgetModule.reloadWidgets();
 }

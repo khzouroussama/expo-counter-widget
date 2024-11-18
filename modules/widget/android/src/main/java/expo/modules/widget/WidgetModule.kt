@@ -4,20 +4,46 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import android.content.Context
 import android.content.SharedPreferences
-import android.widget.RemoteViews
 import android.content.Intent
 import android.content.ComponentName
 import android.appwidget.AppWidgetManager
 import android.content.pm.PackageManager
+import android.widget.Toast
 
 class WidgetModule : Module() {
   override fun definition() = ModuleDefinition {
       Name("Widget")
 
-      Function("setData") { json: String ->
-          val packageName = context.packageName
+      Function("getContainerUrl") {
+          return@Function ""
+      }
 
-          getPreferences(packageName).edit().putString("widgetdata", json).commit()
+      AsyncFunction("writeAsStringAsync") { filename: String, content: String ->
+          try {
+              context.openFileOutput(filename, Context.MODE_PRIVATE).use {
+                  it.write(content.toByteArray())
+              }
+          } catch (e: Exception) {
+              e.printStackTrace()
+              Toast.makeText(context, "Error writing file: ${e.message}", Toast.LENGTH_SHORT).show()
+          }
+      }
+
+
+      AsyncFunction("readAsStringAsync") { filename: String ->
+          try {
+              val content = context.openFileInput(filename).bufferedReader().use {
+                  it.readText()
+              }
+              return@AsyncFunction content
+          } catch (e: Exception) {
+              e.printStackTrace()
+              Toast.makeText(context, "Error reading file: ${e.message}", Toast.LENGTH_SHORT).show()
+          }
+      }
+
+      Function("reloadWidgets") {
+          val packageName = context.packageName
 
           val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
           val widgetManager = AppWidgetManager.getInstance(context)

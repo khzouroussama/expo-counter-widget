@@ -1,47 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0a7ea4"
+    android:background="#fff"
+    android:focusable="true"
     android:orientation="vertical"
-    android:gravity="center">
+    android:gravity="center"
+    android:clickable="true"
+    android:padding="16dp">
 
+    <!-- Count Number TextView -->
     <TextView
         android:id="@+id/widget_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Count: 0"
-        android:textSize="24sp"
-        android:textColor="#FFFFFF" />
+        android:text="0"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
 
-    <TextView
-        android:id="@+id/widget_updated_at"
+    <!-- Updated At TextView -->
+    <Chronometer
+        android:id="@+id/widget_chronometer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Updated at:"
-        android:textSize="12sp"
-        android:textColor="#FFFFFF" />
-</LinearLayout>
+        android:textColor="#000"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp" />
 
+    <!-- Buttons Layout -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
-<!-- <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android" -->
-<!--     style="@style/Widget.EASWidgetExample.AppWidget.Container" -->
-<!--     android:layout_width="match_parent" -->
-<!--     android:layout_height="match_parent" -->
-<!--     android:theme="@style/AppTheme.AppWidgetContainer"> -->
-<!---->
-<!--     <TextView -->
-<!--         android:id="@+id/appwidget_text" -->
-<!--         style="@style/Widget.EASWidgetExample.AppWidget.InnerView" -->
-<!--         android:layout_width="wrap_content" -->
-<!--         android:layout_height="wrap_content" -->
-<!--         android:layout_centerHorizontal="true" -->
-<!--         android:layout_centerVertical="true" -->
-<!--         android:layout_margin="8dp" -->
-<!--         android:contentDescription="@string/appwidget_text" -->
-<!--         android:text="@string/appwidget_text" -->
-<!--         android:textSize="24sp" -->
-<!--         android:textStyle="bold|italic" /> -->
-<!-- </RelativeLayout> -->
-<!---->
-<!---->
+        <!-- Decrement Button -->
+        <Button
+            android:id="@+id/button_decrement"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="−"
+            android:textSize="32sp"
+            android:background="@android:color/darker_gray"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="Decrement" />
+
+        <!-- Increment Button -->
+        <Button
+            android:id="@+id/button_increment"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:text="+"
+            android:textSize="32sp"
+            android:background="@android:color/darker_gray"
+            android:contentDescription="Increment" />
+    </LinearLayout>
+
+</LinearLayout
