@@ -30,6 +30,7 @@ export const useSharedData = () => {
 
   async function writeData(data: SharedData) {
     try {
+      console.log({ ...data });
       const jsonData = JSON.stringify(data);
       writeAsStringAsync(sharedFilePatch, jsonData);
     } catch (error) {
@@ -39,13 +40,13 @@ export const useSharedData = () => {
 
   useInterval(async () => {
     const data = await readData();
-    setData({ count: data.count || 0, updatedAt: data.updatedAt || null });
+    setData({ count: data?.count || 0, updatedAt: data?.updatedAt || null });
   }, 1000);
 
   React.useEffect(() => {
     (async () => {
       const data = await readData();
-      setData({ count: data.count || 0, updatedAt: data.updatedAt || null });
+      setData({ count: data?.count || 0, updatedAt: data?.updatedAt || null });
     })();
   }, []);
 

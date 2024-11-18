@@ -20,7 +20,7 @@ struct ShareDataManager {
     var updatedAt: String
     
     var date: Date? {
-      ISO8601DateFormatter().date(from: updatedAt)
+      ISO8601DateFormatter().date(from: updatedAt) ?? Date()
     }
   }
   
